@@ -2,6 +2,9 @@ import pandas as pd
 import urllib.request
 from time import sleep
 from google.cloud import storage
+from flask import Flask
+
+app = Flask(__name__)
 
 countries = ['Afghanistan/アフガニスタン', 'Albania/アルバニア', 'Algeria/アルジェリア', 'Andorra/アンドラ', 'Angola/アンゴラ',
              'Antigua and Barbuda/アンティグア・バーブーダ', 'Argentina/アルゼンチン', 'Armenia/アルメニア', 'Australia/オーストラリア',
@@ -116,40 +119,48 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
     )
 
 
+@app.route('/')
+def index():
 
-download(
+    download(
     "https://data.humdata.org/hxlproxy/api/data-preview.csv?url=https%3A%2F%2Fraw.githubusercontent.com%2FCSSEGISandData%2FCOVID-19%2Fmaster%2Fcsse_covid_19_data%2Fcsse_covid_19_time_series%2Ftime_series_covid19_confirmed_global.csv&filename=time_series_covid19_confirmed_global.csv",
-    "rawdata/time_series_covid19_confirmed_global.csv")
-download(
+    "/tmp/time_series_covid19_confirmed_global.csv")
+    download(
     "https://data.humdata.org/hxlproxy/api/data-preview.csv?url=https%3A%2F%2Fraw.githubusercontent.com%2FCSSEGISandData%2FCOVID-19%2Fmaster%2Fcsse_covid_19_data%2Fcsse_covid_19_time_series%2Ftime_series_covid19_deaths_global.csv&filename=time_series_covid19_deaths_global.csv",
-    "rawdata/time_series_covid19_deaths_global.csv")
-download(
+    "/tmp/time_series_covid19_deaths_global.csv")
+    download(
     "https://data.humdata.org/hxlproxy/api/data-preview.csv?url=https%3A%2F%2Fraw.githubusercontent.com%2FCSSEGISandData%2FCOVID-19%2Fmaster%2Fcsse_covid_19_data%2Fcsse_covid_19_time_series%2Ftime_series_covid19_recovered_global.csv&filename=time_series_covid19_recovered_global.csv",
-    "rawdata/time_series_covid19_recovered_global.csv")
+    "/tmp/time_series_covid19_recovered_global.csv")
 
-sleep(1)
+    sleep(1)
 
-transform('rawdata/time_series_covid19_confirmed_global.csv',"../corona/src/data/confirmed.csv")
-transform('rawdata/time_series_covid19_deaths_global.csv',"../corona/src/data/deaths.csv")
-transform('rawdata/time_series_covid19_recovered_global.csv',"../corona/src/data/recovered.csv")
+    transform('/tmp/time_series_covid19_confirmed_global.csv',"/tmp/confirmed.csv")
+    transform('/tmp/time_series_covid19_deaths_global.csv',"/tmp/deaths.csv")
+    transform('/tmp/time_series_covid19_recovered_global.csv',"/tmp/recovered.csv")
 
-sleep(1)
+    sleep(1)
 
-addPopulation("population3.csv", "../corona/src/data/confirmed.csv")
-addPopulation("population3.csv", "../corona/src/data/deaths.csv")
-addPopulation("population3.csv", "../corona/src/data/recovered.csv")
-sleep(1)
-addWorld("../corona/src/data/confirmed.csv")
-addWorld("../corona/src/data/deaths.csv")
-addWorld("../corona/src/data/recovered.csv")
-addIndex("../corona/src/data/confirmed.csv")
-addIndex("../corona/src/data/deaths.csv")
-addIndex("../corona/src/data/recovered.csv")
+    addPopulation("population3.csv", "/tmp/confirmed.csv")
+    addPopulation("population3.csv", "/tmp/deaths.csv")
+    addPopulation("population3.csv", "/tmp/recovered.csv")
+    sleep(1)
+    addWorld("/tmp/confirmed.csv")
+    addWorld("/tmp/deaths.csv")
+    addWorld("/tmp/recovered.csv")
+    addIndex("/tmp/confirmed.csv")
+    addIndex("/tmp/deaths.csv")
+    addIndex("/tmp/recovered.csv")
 
-print("awake")
+    print("awake")
 
-upload_blob("coronacharts", "../corona/src/data/confirmed.csv", "data/confirmed.csv")
-upload_blob("coronacharts", "../corona/src/data/deaths.csv", "data/deaths.csv")
-upload_blob("coronacharts", "../corona/src/data/recovered.csv", "data/recovered.csv")
+    upload_blob("coronacharts", "/tmp/confirmed.csv", "/tmp/confirmed.csv")
+    upload_blob("coronacharts", "/tmp/deaths.csv", "/tmp/deaths.csv")
+    upload_blob("coronacharts", "/tmp/recovered.csv", "/tmp/data/recovered.csv")
+
+    return 'Hello, World!'
 
 # １行目　1列目:index 2列目:人口　３列目：：日付
+
+if __name__ == '__main__':
+    app.debug = True # デバッグモード有効化
+    app.run(host='0.0.0.0') # どこからでもアクセス可能に
